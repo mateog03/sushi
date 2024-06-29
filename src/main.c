@@ -253,8 +253,7 @@ readargs()
 void
 runall()
 {
-	int fd[2] = { rdin, 1 };
-	int fdout = rdout;
+	int fd[2] = { rdin, rdout };
 	int bg = background;
 	int i, j;
 
@@ -270,7 +269,7 @@ runall()
 		if (last) {
 			if (bg)
 				background = 1;
-			tmpfd[1] = fdout;
+			tmpfd[1] = fd[1];
 		}
 
 		args[j] = NULL;
@@ -278,17 +277,13 @@ runall()
 
 		if (fd[0] != 0)
 			close(fd[0]);
-
 		fd[0] = tmpfd[0];
 
-		if (tmpfd[1] != fdout)
+		if (tmpfd[1] != 1)
 			close(tmpfd[1]);
 
 		i = j + !last;
 	}
-
-	if (fd[1] != 1)
-		close(fd[1]);
 }
 
 void
@@ -357,7 +352,9 @@ int
 isexec(const char *path)
 {
 	struct stat st;
-	return stat(path, &st) == 0 && (st.st_mode & S_IXUSR);
+	if (stat(path, &st) == -1)
+		return 0;
+	return S_ISREG(st.st_mode) && (st.st_mode & S_IXUSR);
 }
 
 struct builtin *
@@ -401,7 +398,7 @@ syntax(const char *tok)
 void
 errfile(const char *filename)
 {
-	printf("couldn't open \"%s\"", filename);
+	printf("couldn't open \"%s\"\n", filename);
 }
 
 void
