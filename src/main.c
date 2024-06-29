@@ -78,10 +78,8 @@ main()
 
 		if (b)
 			b->func();
-		else if (iscmd(name))
-			runall();
 		else
-			printf("eh?\n");
+			runall();
 
 		jobupdate();
 	}
@@ -259,6 +257,16 @@ runall()
 
 	background = 0;
 	for (i = 0; args[i];) {
+		if (!iscmd(args[i])) {
+			printf("%s: eh?\n", args[i]);
+
+			if (fd[0] != 0)
+				close(fd[0]);
+			if (fd[1] != 1)
+				close(fd[1]);
+			break;
+		}
+
 		for (j = i + 1; args[j] && args[j] != STR_PIPE; j++)
 			;
 
